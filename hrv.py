@@ -1,6 +1,7 @@
 import asyncio
 from bleak import BleakScanner, BleakClient
 import numpy as np
+import argparse
 
 def compute_rmssd(rr_ms):
     if len(rr_ms) < 2:
@@ -10,7 +11,7 @@ def compute_rmssd(rr_ms):
     rmssd = np.sqrt(np.mean(squared_diff))
     return rmssd
 
-async def main():
+async def main(collection_duration):
     print("🔍 Scanning for BLE devices...")
     devices = await BleakScanner.discover()
 
@@ -88,8 +89,8 @@ async def main():
         if hr_char_found:
             print("📥 Subscribing to Heart Rate notifications...")
             await client.start_notify(HR_CHAR_UUID, hr_callback)
-            print("⏳ Waiting for heart rate data (10 seconds)...")
-            await asyncio.sleep(10)  # Keep receiving data
+            print(f"⏳ Waiting for heart rate data ({collection_duration} seconds)...")
+            await asyncio.sleep(collection_duration)  # Keep receiving data
             await client.stop_notify(HR_CHAR_UUID)
             
             # Calculate HRV metrics
@@ -107,4 +108,10 @@ async def main():
         else:
             print("⚠️ Heart Rate Measurement characteristic not found.")
 
-asyncio.run(main())
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='HRV Monitor for XOSS heart rate straps')
+    parser.add_argument('-d', '--duration', type=int, default=20,
+                      help='Duration of data collection in seconds (default: 20)')
+    args = parser.parse_args()
+    
+    asyncio.run(main(args.duration))
