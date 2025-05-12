@@ -79,4 +79,4 @@ The script provides real-time feedback including:
 
 ## License
 
-[Add your preferred license here]
+MIT License
